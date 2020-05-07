@@ -1,15 +1,15 @@
 package dev.procrastineyaz.trellospring.security.jwt
 
-import io.jsonwebtoken.*
+import io.jsonwebtoken.JwtParser
+import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.userdetails.User
 import org.springframework.stereotype.Component
-import java.lang.Exception
 import java.security.Key
 import java.util.*
 import java.util.Base64.getEncoder
@@ -42,9 +42,9 @@ class TokenProvider {
             .collect(Collectors.joining(","))
         val now: Long = Date().time
         val validity = Date(now + tokenValidityInMilliseconds)
-        println("secret: $secretKey")
         return Jwts.builder()
-            .setSubject(authentication.name)
+            .setSubject(authentication.principal.toString())
+            .claim("username", authentication.name)
             .claim(AUTHORITIES_KEY, authorities)
             .signWith(key)
             .setExpiration(validity)
@@ -52,7 +52,7 @@ class TokenProvider {
     }
 
     fun getAuthentication(token: String): Authentication {
-        if (token.isEmpty() || !validateToken(token)) {
+        if (token.isEmpty()) {
             throw BadCredentialsException("Invalid token")
         }
         val claims = try {
@@ -66,24 +66,9 @@ class TokenProvider {
         val authorities: Collection<GrantedAuthority> = Arrays.stream(claims[AUTHORITIES_KEY].toString().split(",").toTypedArray())
             .map { role: String? -> SimpleGrantedAuthority(role) }
             .collect(Collectors.toList())
-        val principal = User(claims.subject, "", authorities)
+        // val principal = User(claims.subject, "", authorities)
+        val principal = UserDetailsImpl(claims.subject, claims[AUTHORITIES_KEY].toString(), claims["username"].toString())
         return UsernamePasswordAuthenticationToken(principal, token, authorities)
-    }
-
-    fun validateToken(authToken: String?): Boolean {
-        try {
-            parser.parseClaimsJws(authToken)
-            return true
-        } catch (e: SignatureException) {
-            println("Invalid JWT signature.")
-        } catch (e: MalformedJwtException) {
-            println("Invalid JWT token.")
-        } catch (e: UnsupportedJwtException) {
-            println("Unsupported JWT token.")
-        } catch (e: IllegalArgumentException) {
-            println("JWT token compact of handler are invalid.")
-        }
-        return false
     }
 
     private fun String.hexToByteArray(): ByteArray {
@@ -91,7 +76,6 @@ class TokenProvider {
         for(i in this.indices step 2) {
             data[i / 2] = ((Character.digit(this[i], 16) shl 4) + Character.digit(this[i+1], 16)).toByte()
         }
-        println("Secret: $this or $data")
         return data
     }
 

@@ -3,6 +3,8 @@ package dev.procrastineyaz.trellospring.controllers
 import dev.procrastineyaz.trellospring.models.User
 import dev.procrastineyaz.trellospring.models.UserRole
 import dev.procrastineyaz.trellospring.repositories.UserRepository
+import dev.procrastineyaz.trellospring.security.extensions.userId
+import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -16,7 +18,9 @@ class MainController(
     private val userRepository: UserRepository
 ) {
     @GetMapping("/api/users")
-    fun getUsers(): Mono<String> = Mono.just("hello")
+    fun getUser(authentication: Authentication): Mono<Any> {
+        return Mono.just(authentication.userId)
+    }
 
     @PostMapping("/api/users")
     fun createUser(@RequestBody newUser: Mono<NewUser>) =
