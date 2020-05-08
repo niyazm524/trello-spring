@@ -1,6 +1,7 @@
 package dev.procrastineyaz.trellospring.controllers
 
 import dev.procrastineyaz.trellospring.dto.NewUserDto
+import dev.procrastineyaz.trellospring.dto.SafeUserDataDto
 import dev.procrastineyaz.trellospring.extensions.toUserModel
 import dev.procrastineyaz.trellospring.repositories.UserRepository
 import dev.procrastineyaz.trellospring.security.extensions.user
@@ -19,8 +20,12 @@ class UsersController(
     @GetMapping("/self")
     fun getSelf(auth: Authentication) = Mono.just(auth.user)
 
+    @GetMapping("/{id}")
+    fun getUser(auth: Authentication, @PathVariable id: String): Mono<SafeUserDataDto> =
+        userRepository.findById(id).map { SafeUserDataDto.from(it) }
+
     @PostMapping
-    fun createUser(@RequestBody newUser: Mono<NewUserDto>) =
-        newUser.map { user -> user.toUserModel(password = passwordEncoder.encode(user.password)) }
-            .flatMap { userRepository.save(it) }
+    fun createUser(@RequestBody newUser: Mono<NewUserDto>) = newUser.map { user ->
+        user.toUserModel(password = passwordEncoder.encode(user.password))
+    }.flatMap { userRepository.save(it) }
 }
