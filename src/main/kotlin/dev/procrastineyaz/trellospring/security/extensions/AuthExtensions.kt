@@ -5,4 +5,4 @@ import org.springframework.security.core.Authentication
 
 
 val Authentication.user
-get() = (this.principal as UserDetailsImpl).user
+get() = (this.details as UserDetailsImpl).user

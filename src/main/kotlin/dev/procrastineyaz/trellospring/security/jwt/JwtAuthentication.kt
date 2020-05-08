@@ -3,8 +3,10 @@ package dev.procrastineyaz.trellospring.security.jwt
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 
-class JwtAuthentication(val userDetailsImpl: UserDetailsImpl) : Authentication {
+class JwtAuthentication(
+    private val userDetailsImpl: UserDetailsImpl,
     private var isAuthenticated: Boolean = false
+) : Authentication {
 
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
         return userDetailsImpl.authorities
