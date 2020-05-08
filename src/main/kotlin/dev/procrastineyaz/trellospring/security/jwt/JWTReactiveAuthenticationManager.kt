@@ -24,8 +24,9 @@ class JWTReactiveAuthenticationManager(
             .cast(UserDetailsImpl::class.java)
             .publishOn(Schedulers.parallel())
             .filter { u: UserDetails -> passwordEncoder.matches(authentication.credentials as String, u.password) }
-            .map { u: UserDetailsImpl -> JwtAuthentication(u) }
+            .map { u: UserDetailsImpl -> JwtAuthentication(u).apply { isAuthenticated = true } }
             .cast(Authentication::class.java)
+            .switchIfEmpty(Mono.just(authentication))
             .onErrorReturn(authentication)
 
     }

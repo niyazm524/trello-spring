@@ -29,16 +29,10 @@ class JwtAuthController(
                 val authenticationToken: Authentication = UsernamePasswordAuthenticationToken(loginVm.username, loginVm.password)
                 authenticationManager.authenticate(authenticationToken)
             }
-            .switchIfEmpty { Mono.error(ResponseStatusException(HttpStatus.BAD_REQUEST, "Username or password is incorrect")) }
             .doOnNext { ReactiveSecurityContextHolder.withAuthentication(it) }
-            .filter {
-                print(it.toString())
-                it.isAuthenticated
-            }
-            .map { auth: Authentication ->
-                val token = tokenProvider.createToken(auth)
-                JWTToken(token)
-            }
+            .filter { it.isAuthenticated }
+            .switchIfEmpty { Mono.error(ResponseStatusException(HttpStatus.BAD_REQUEST, "Username or password is incorrect")) }
+            .map { auth: Authentication -> JWTToken(token = tokenProvider.createToken(auth)) }
     }
 
 }
