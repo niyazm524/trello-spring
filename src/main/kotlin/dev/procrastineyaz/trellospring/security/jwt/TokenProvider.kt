@@ -1,14 +1,13 @@
 package dev.procrastineyaz.trellospring.security.jwt
 
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.JwtParser
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
 import org.springframework.security.authentication.BadCredentialsException
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
 import java.security.Key
 import java.util.*
@@ -51,11 +50,11 @@ class TokenProvider {
             .compact()
     }
 
-    fun getAuthentication(token: String): Authentication {
+    fun getTokenClaims(token: String): Claims {
         if (token.isEmpty()) {
             throw BadCredentialsException("Invalid token")
         }
-        val claims = try {
+        return try {
             parser
                 .parseClaimsJws(token)
                 .body
@@ -63,12 +62,12 @@ class TokenProvider {
             println("Bad Access Token: ${e.message}")
             throw AuthenticationCredentialsNotFoundException("bad token")
         }
-        val authorities: Collection<GrantedAuthority> = Arrays.stream(claims[AUTHORITIES_KEY].toString().split(",").toTypedArray())
-            .map { role: String? -> SimpleGrantedAuthority(role) }
-            .collect(Collectors.toList())
-        // val principal = User(claims.subject, "", authorities)
-        val principal = UserDetailsImpl(claims.subject, claims[AUTHORITIES_KEY].toString(), claims["username"].toString())
-        return UsernamePasswordAuthenticationToken(principal, token, authorities)
+//        val authorities: Collection<GrantedAuthority> = Arrays.stream(claims[AUTHORITIES_KEY].toString().split(",").toTypedArray())
+//            .map { role: String? -> SimpleGrantedAuthority(role) }
+//            .collect(Collectors.toList())
+//        // val principal = User(claims.subject, "", authorities)
+//        val principal = UserDetailsImpl(claims.subject, claims[AUTHORITIES_KEY].toString(), claims["username"].toString())
+//        return UsernamePasswordAuthenticationToken(principal, token, authorities)
     }
 
     private fun String.hexToByteArray(): ByteArray {

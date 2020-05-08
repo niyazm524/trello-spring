@@ -1,26 +1,27 @@
 package dev.procrastineyaz.trellospring.security.jwt
 
+import dev.procrastineyaz.trellospring.models.User
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import java.util.*
 
 class UserDetailsImpl(
-        val userId: String, private val role: String, private val userName: String, private val pass: String? = null
+        val user: User
 ) : UserDetails {
 
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
-        return SimpleGrantedAuthority(role).let { Collections.singleton(it) }
+        return SimpleGrantedAuthority(user.role.toString()).let { Collections.singleton(it) }
     }
 
     override fun isEnabled(): Boolean = true
 
-    override fun getUsername(): String = userName
+    override fun getUsername(): String = user.username
 
     override fun isCredentialsNonExpired(): Boolean = true
 
     override fun getPassword(): String? {
-        return pass
+        return user.password
     }
 
     override fun isAccountNonExpired(): Boolean = true

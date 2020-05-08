@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 
 @RestController
@@ -26,15 +27,18 @@ class JwtAuthController(
         return loginVM.filter { it.username.isNotEmpty() && it.password.isNotEmpty() }
             .flatMap { loginVm ->
                 val authenticationToken: Authentication = UsernamePasswordAuthenticationToken(loginVm.username, loginVm.password)
-                val auth = authenticationManager.authenticate(authenticationToken)
-                ReactiveSecurityContextHolder.withAuthentication(authenticationToken)
-                auth
+                authenticationManager.authenticate(authenticationToken)
+            }
+            .switchIfEmpty { Mono.error(ResponseStatusException(HttpStatus.BAD_REQUEST, "Username or password is incorrect")) }
+            .doOnNext { ReactiveSecurityContextHolder.withAuthentication(it) }
+            .filter {
+                print(it.toString())
+                it.isAuthenticated
             }
             .map { auth: Authentication ->
                 val token = tokenProvider.createToken(auth)
                 JWTToken(token)
             }
-            .onErrorMap { ResponseStatusException(HttpStatus.BAD_REQUEST, "malformed or wrong credentials") }
     }
 
 }

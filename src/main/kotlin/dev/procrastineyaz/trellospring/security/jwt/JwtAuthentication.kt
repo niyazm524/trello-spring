@@ -18,7 +18,7 @@ class JwtAuthentication(val userDetailsImpl: UserDetailsImpl) : Authentication {
 
     override fun getCredentials(): Any? = null
 
-    override fun getPrincipal(): Any? = userDetailsImpl.userId
+    override fun getPrincipal(): Any? = userDetailsImpl.user.id
 
     override fun isAuthenticated(): Boolean = isAuthenticated
 

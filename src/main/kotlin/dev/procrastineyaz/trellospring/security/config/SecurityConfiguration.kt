@@ -1,5 +1,6 @@
 package dev.procrastineyaz.trellospring.security.config
 
+import dev.procrastineyaz.trellospring.repositories.UserRepository
 import dev.procrastineyaz.trellospring.security.TokenAuthenticationConverter
 import dev.procrastineyaz.trellospring.security.jwt.*
 import org.springframework.context.annotation.Bean
@@ -13,7 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
-import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository
 
 
 @Configuration
@@ -21,6 +21,7 @@ import org.springframework.security.web.server.context.WebSessionServerSecurityC
 @EnableReactiveMethodSecurity
 class SecurityConfiguration(
     private val reactiveUserDetailsService: ReactiveUserDetailsServiceImpl,
+    private val userRepository: UserRepository,
     private val tokenProvider: TokenProvider
 ) {
 
@@ -48,7 +49,7 @@ class SecurityConfiguration(
     @Bean
     fun webFilter(): AuthenticationWebFilter {
         return AuthenticationWebFilter(repositoryReactiveAuthenticationManager()).apply {
-            setServerAuthenticationConverter(TokenAuthenticationConverter(tokenProvider))
+            setServerAuthenticationConverter(TokenAuthenticationConverter(tokenProvider, userRepository))
             setRequiresAuthenticationMatcher(JWTHeadersExchangeMatcher())
         }
     }
