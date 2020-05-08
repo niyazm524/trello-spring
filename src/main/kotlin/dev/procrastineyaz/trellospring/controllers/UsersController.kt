@@ -21,8 +21,8 @@ class UsersController(
     fun getSelf(auth: Authentication) = Mono.just(auth.user)
 
     @GetMapping("/{id}")
-    fun getUser(auth: Authentication, @PathVariable id: String): Mono<SafeUserDataDto> =
-        userRepository.findById(id).map { SafeUserDataDto.from(it) }
+    fun getUser(@PathVariable id: String): Mono<SafeUserDataDto> =
+        userRepository.findById(id).map { user -> SafeUserDataDto.from(user) }
 
     @PostMapping
     fun createUser(@RequestBody newUser: Mono<NewUserDto>) = newUser.map { user ->
