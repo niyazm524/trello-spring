@@ -8,8 +8,8 @@ import reactor.core.publisher.Mono
 
 @Component
 class ReactiveUserDetailsServiceImpl(private val userRepository: UserRepository) : ReactiveUserDetailsService {
-    override fun findByUsername(username: String): Mono<UserDetails> {
-        return userRepository.findByUsername(username)
+    override fun findByUsername(usernameOrEmail: String): Mono<UserDetails> {
+        return userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
             .map { UserDetailsImpl(it) }
     }
 

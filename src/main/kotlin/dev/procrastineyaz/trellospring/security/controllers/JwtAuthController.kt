@@ -24,9 +24,9 @@ class JwtAuthController(
 
     @PostMapping
     fun authorize(@RequestBody loginVM: Mono<LoginVM>): Mono<JWTToken> {
-        return loginVM.filter { it.username.isNotEmpty() && it.password.isNotEmpty() }
+        return loginVM.filter { it.usernameOrEmail.isNotEmpty() && it.password.isNotEmpty() }
             .flatMap { loginVm ->
-                val authenticationToken: Authentication = UsernamePasswordAuthenticationToken(loginVm.username, loginVm.password)
+                val authenticationToken: Authentication = UsernamePasswordAuthenticationToken(loginVm.usernameOrEmail, loginVm.password)
                 authenticationManager.authenticate(authenticationToken)
             }
             .doOnNext { ReactiveSecurityContextHolder.withAuthentication(it) }
@@ -37,6 +37,6 @@ class JwtAuthController(
 
 }
 
-data class LoginVM(val username: String, val password: String)
+data class LoginVM(val usernameOrEmail: String, val password: String)
 
 data class JWTToken(val token: String)
