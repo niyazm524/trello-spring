@@ -13,4 +13,7 @@ interface BoardRepository : ReactiveMongoRepository<Board, String> {
     fun findByIdAndMembersIn(id: String, user: User): Mono<Board>
     fun findByIdAndAuthor(id: String, author: User): Mono<Board>
     fun deleteByIdAndAuthor(id: String, author: User): Mono<Void>
+
+    @Query(fields = "{ 'description': 0 }")
+    fun findById_AndMembersIn(id: String, user: User): Mono<Board>
 }
