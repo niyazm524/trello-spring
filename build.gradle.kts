@@ -13,6 +13,7 @@ java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
 	mavenCentral()
+	maven { setUrl("http://oss.jfrog.org/artifactory/oss-snapshot-local/") }
 }
 
 dependencies {
@@ -26,6 +27,9 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 	implementation("io.jsonwebtoken:jjwt-api:0.11.0")
+	implementation("io.springfox:springfox-swagger2:3.0.0-SNAPSHOT")
+	implementation("io.springfox:springfox-swagger-ui:3.0.0-SNAPSHOT")
+	implementation("io.springfox:springfox-spring-webflux:3.0.0-SNAPSHOT")
 	runtime("io.jsonwebtoken:jjwt-impl:0.11.0")
 	runtime("io.jsonwebtoken:jjwt-jackson:0.11.0")
 
