@@ -5,6 +5,7 @@ import dev.procrastineyaz.trellospring.dto.SafeUserDataDto
 import dev.procrastineyaz.trellospring.extensions.toUserModel
 import dev.procrastineyaz.trellospring.repositories.UserRepository
 import dev.procrastineyaz.trellospring.security.extensions.user
+import dev.procrastineyaz.trellospring.service.EmailService
 import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.*
@@ -14,7 +15,8 @@ import reactor.core.publisher.Mono
 @RequestMapping("/api/users")
 class UsersController(
     private val passwordEncoder: PasswordEncoder,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val emailService: EmailService
 ) {
 
     @GetMapping("/self")
@@ -27,5 +29,8 @@ class UsersController(
     @PostMapping
     fun createUser(@RequestBody newUser: Mono<NewUserDto>) = newUser.map { user ->
         user.toUserModel(password = passwordEncoder.encode(user.password))
-    }.flatMap { userRepository.save(it) }
+    }.flatMap {
+        emailService.sendRegistrationEmail(it)
+        userRepository.save(it)
+    }
 }

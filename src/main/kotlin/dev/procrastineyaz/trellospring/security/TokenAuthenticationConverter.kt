@@ -24,6 +24,7 @@ class TokenAuthenticationConverter(
             .filter { token -> token.isNotEmpty() }
             .map { token -> tokenProvider.getTokenClaims(token).subject }
             .flatMap { userId -> userRepository.findById(userId) }
+            .filter { user -> user.isEnabled }
             .map<Authentication> { user: User -> JwtAuthentication(UserDetailsImpl(user), true) }
             .onErrorMap { t -> ResponseStatusException(HttpStatus.UNAUTHORIZED, t.message) }
 

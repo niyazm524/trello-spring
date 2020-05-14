@@ -5,6 +5,6 @@ import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import reactor.core.publisher.Mono
 
 interface UserRepository : ReactiveMongoRepository<User, String> {
-    fun findByUsername(username: String): Mono<User>
+    fun findByUsernameAndEmail(username: String, email: String): Mono<User>
     fun findByUsernameOrEmail(username: String, email: String): Mono<User>
 }

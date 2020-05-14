@@ -40,6 +40,7 @@ class SecurityConfiguration(
             .addFilterAt(webFilter(), SecurityWebFiltersOrder.AUTHORIZATION)
             .authorizeExchange()
             .pathMatchers("/api/login").permitAll()
+            .pathMatchers("/enable-account/**").permitAll()
             .pathMatchers("/swagger-ui.html**", "/webjars/**", "/swagger-resources/**", "/v2/api-docs/**").permitAll()
             .pathMatchers(HttpMethod.POST, "/api/users").permitAll()
             .anyExchange().authenticated()

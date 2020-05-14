@@ -13,7 +13,8 @@ data class User(
     val firstName: String,
     val lastName: String,
     @JsonIgnore val password: String,
-    val role: UserRole
+    val role: UserRole,
+    @JsonIgnore val isEnabled: Boolean = false
 )
 
 enum class UserRole {

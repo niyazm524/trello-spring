@@ -14,7 +14,7 @@ class UserDetailsImpl(
         return SimpleGrantedAuthority(user.role.toString()).let { Collections.singleton(it) }
     }
 
-    override fun isEnabled(): Boolean = true
+    override fun isEnabled(): Boolean = user.isEnabled
 
     override fun getUsername(): String = user.username
 
