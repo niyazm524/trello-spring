@@ -1,5 +1,7 @@
 package dev.procrastineyaz.trellospring.controllers
 
+import dev.procrastineyaz.trellospring.dto.CardMoveDto
+import dev.procrastineyaz.trellospring.dto.CardOrderDto
 import dev.procrastineyaz.trellospring.dto.NewBoardListDto
 import dev.procrastineyaz.trellospring.dto.NewCardDto
 import dev.procrastineyaz.trellospring.models.Board
@@ -14,6 +16,7 @@ import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 
 @RestController
 @RequestMapping("/api/boards/{id}/lists")
@@ -50,6 +53,49 @@ class BoardListsController(
         .map { board -> board.lists.find { it.id == listId } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND) }
         .zipWith(newCard) { list, newCard ->
             list.copy(cards = list.cards + Card(id = ObjectId.get().toHexString(), title = newCard.title))
+        }
+        .flatMap { boardListRepository.save(it) }
+
+    @PostMapping("/{listId}/cards/{cardId}/reorder")
+    fun reorderCards(
+        auth: Authentication,
+        @PathVariable id: String,
+        @PathVariable listId: String,
+        @PathVariable cardId: String,
+        @RequestBody newOrder: Mono<CardOrderDto>
+    ): Mono<BoardList> = boardRepository.findById_AndMembersIn(id, auth.user)
+        .map { board -> board.lists.find { it.id == listId } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "List not found") }
+        .zipWith(newOrder) { list, (newIndex): CardOrderDto ->
+            val cardIndex = list.cards.indexOfFirst { it.id == cardId } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Card not found")
+            val cards = list.cards.toMutableList()
+            cards.removeAt(cardIndex)
+            cards.add(newIndex, list.cards[cardIndex])
+            list.copy(cards = cards.toList())
+        }
+        .flatMap { boardListRepository.save(it) }
+
+
+    @PostMapping("/{listId}/cards/{cardId}/move")
+    fun moveCard(
+        auth: Authentication,
+        @PathVariable id: String,
+        @PathVariable listId: String,
+        @PathVariable cardId: String,
+        @RequestBody moveDto: Mono<CardMoveDto>
+    ): Mono<BoardList> = boardRepository.findById_AndMembersIn(id, auth.user)
+        .doOnSuccess { board ->
+            val list = board.lists.find { it.id == listId } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "List not found")
+            boardListRepository.save(list.copy(cards = list.cards.filterNot { it.id == cardId }))
+                .publishOn(Schedulers.parallel())
+                .subscribe()
+        }
+        .zipWith(moveDto) { board, (destListId, newIndex): CardMoveDto ->
+            val destList = board.lists.find { it.id == destListId } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Dest List not found")
+            val sourceList = board.lists.find { it.id == listId } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Dest List not found")
+            val movedCard = sourceList.cards.find { it.id == cardId } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Card not found")
+            val cards = destList.cards.toMutableList()
+            cards.add(newIndex, movedCard)
+            destList.copy(cards = cards.toList())
         }
         .flatMap { boardListRepository.save(it) }
 

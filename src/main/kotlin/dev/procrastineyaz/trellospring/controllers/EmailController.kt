@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable
 @Controller
 class EmailController(private val emailService: EmailService) {
     @GetMapping("/enable-account/{token}")
+
     fun enableAccount(@PathVariable token: String): String {
         val user = emailService.confirmEmail(token)
         return if(user.isEnabled) {
